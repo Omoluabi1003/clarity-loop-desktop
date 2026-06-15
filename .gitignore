@@ -1,0 +1,25 @@
+node_modules/
+dist/
+target/
+src-tauri/target/
+src-tauri/icons/*
+*.exe
+*.msi
+*.ico
+*.png
+*.jpg
+*.jpeg
+*.webp
+*.icns
+*.dmg
+*.zip
+*.tar
+*.7z
+
+# Local/editor files
+.env
+.env.*
+!.env.example
+.DS_Store
+.vscode/
+.idea/

@@ -1,0 +1,50 @@
+name: Build Windows Desktop
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+
+jobs:
+  build-windows:
+    name: Build Windows installers
+    runs-on: windows-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Set up Rust stable
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Rust build data
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri -> target
+
+      - name: Install JavaScript dependencies
+        run: npm ci
+
+      - name: Build and normalize Windows installers
+        run: npm run build:windows
+
+      - name: Upload Windows installers
+        uses: actions/upload-artifact@v4
+        with:
+          name: clarity-loop-windows-installers
+          path: |
+            dist/windows/ClarityLoopSetup.exe
+            dist/windows/ClarityLoop.msi
+          if-no-files-found: error
+          retention-days: 14

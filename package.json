@@ -1,0 +1,16 @@
+{
+  "name": "clarity-loop-desktop",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Standalone Tauri desktop wrapper for Clarity Loop AI Book Studio",
+  "license": "UNLICENSED",
+  "scripts": {
+    "tauri": "tauri",
+    "dev": "tauri dev",
+    "build": "tauri build",
+    "build:windows": "node scripts/build-windows.mjs"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.8.4"
+  }
+}
