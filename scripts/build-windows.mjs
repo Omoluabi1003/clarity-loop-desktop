@@ -1,5 +1,4 @@
 import { cp, mkdir, readdir, rm } from "node:fs/promises";
-import { spawnSync } from "node:child_process";
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
@@ -13,17 +12,6 @@ if (process.platform !== "win32") {
   process.exit(1);
 }
 
-const npmCommand = process.platform === "win32" ? "npm.cmd" : "npm";
-const build = spawnSync(npmCommand, ["exec", "tauri", "build", "--", "--bundles", "nsis,msi"], {
-  cwd: root,
-  stdio: "inherit",
-  shell: false
-});
-
-if (build.status !== 0) {
-  process.exit(build.status ?? 1);
-}
-
 async function findFiles(directory, extension) {
   const matches = [];
   for (const entry of await readdir(directory, { withFileTypes: true })) {
@@ -32,6 +20,44 @@ async function findFiles(directory, extension) {
     else if (entry.name.toLowerCase().endsWith(extension)) matches.push(entryPath);
   }
   return matches;
+}
+
+async function listDirectory(directory, indent = "") {
+  let entries;
+  try {
+    entries = await readdir(directory, { withFileTypes: true });
+  } catch (error) {
+    console.error(`${indent}${directory}: ${error.message}`);
+    return;
+  }
+
+  if (entries.length === 0) {
+    console.error(`${indent}${directory} (empty)`);
+    return;
+  }
+
+  console.error(`${indent}${directory}`);
+  for (const entry of entries) {
+    const entryPath = path.join(directory, entry.name);
+    console.error(`${indent}  ${entry.isDirectory() ? "[dir]" : "[file]"} ${entry.name}`);
+    if (entry.isDirectory()) await listDirectory(entryPath, `${indent}  `);
+  }
+}
+
+async function reportMissingInstaller(extension, required) {
+  console.error(`No ${extension} installer was found under ${targetDir}.`);
+  console.error(
+    "Confirm that `npm run tauri:build -- --bundles nsis,msi` completed successfully before normalization."
+  );
+  console.error("Bundle directory listing:");
+  await listDirectory(targetDir);
+  console.error("Release directory listing:");
+  await listDirectory(path.dirname(targetDir));
+
+  if (required) {
+    throw new Error(`Required ${extension} Windows installer was not generated.`);
+  }
+  console.warn(`Continuing without the optional ${extension} installer.`);
 }
 
 await rm(outputDir, { recursive: true, force: true });
@@ -43,13 +69,20 @@ const installers = [
 ];
 
 for (const installer of installers) {
-  const matches = await findFiles(targetDir, installer.extension);
+  let matches = [];
+  try {
+    matches = await findFiles(targetDir, installer.extension);
+  } catch (error) {
+    console.error(`Unable to search the Tauri bundle directory: ${error.message}`);
+  }
+
   if (matches.length === 0) {
-    if (installer.required) throw new Error(`No ${installer.extension} installer was generated.`);
-    console.warn(`No ${installer.extension} installer was generated; continuing without it.`);
+    await reportMissingInstaller(installer.extension, installer.required);
     continue;
   }
   if (matches.length > 1) {
+    console.error(`Found multiple ${installer.extension} installers:`);
+    for (const match of matches) console.error(`  ${match}`);
     throw new Error(`Expected one ${installer.extension} installer, found ${matches.length}.`);
   }
   await cp(matches[0], path.join(outputDir, installer.name));

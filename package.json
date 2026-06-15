@@ -8,7 +8,9 @@
     "tauri": "tauri",
     "dev": "tauri dev",
     "build": "tauri build",
-    "build:windows": "node scripts/build-windows.mjs"
+    "tauri:build": "tauri build",
+    "normalize:windows": "node scripts/build-windows.mjs",
+    "build:windows": "npm run tauri:build -- --bundles nsis,msi && npm run normalize:windows"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2.8.4"
