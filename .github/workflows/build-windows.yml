@@ -48,6 +48,9 @@ jobs:
             Write-Host "src-tauri/target/release/bundle does not exist yet (expected before build)."
           }
 
+      - name: Generate placeholder Tauri icons
+        run: node scripts/generate-ci-icons.mjs
+
       - name: Run Tauri Windows build
         run: npm run tauri:build -- --bundles nsis,msi
 
