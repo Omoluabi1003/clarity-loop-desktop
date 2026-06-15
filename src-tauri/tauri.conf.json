@@ -1,0 +1,33 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Clarity Loop AI Book Studio",
+  "version": "0.1.0",
+  "identifier": "com.etlgisconsulting.clarityloop.desktop",
+  "build": {
+    "frontendDist": "../src"
+  },
+  "app": {
+    "windows": [
+      {
+        "label": "main",
+        "title": "Clarity Loop AI Book Studio",
+        "url": "https://clarity-loop-books.vercel.app",
+        "width": 1440,
+        "height": 900,
+        "minWidth": 1024,
+        "minHeight": 700,
+        "resizable": true,
+        "fullscreen": false
+      }
+    ],
+    "security": {
+      "capabilities": ["desktop"]
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["nsis", "msi"],
+    "publisher": "ETL GIS Consulting LLC",
+    "icon": []
+  }
+}
