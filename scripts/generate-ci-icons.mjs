@@ -100,6 +100,7 @@ const files = new Map([
   ["32x32.png", png32],
   ["128x128.png", png128],
   ["128x128@2x.png", png256],
+  ["icon.png", png256],
   [
     "icon.ico",
     createIco([
