@@ -17,12 +17,12 @@ jobs:
 
     steps:
       - name: Check out source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.3.0
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6.4.0
         with:
-          node-version: 20
+          node-version: 24
           cache: npm
 
       - name: Set up Rust stable
@@ -36,8 +36,34 @@ jobs:
       - name: Install JavaScript dependencies
         run: npm ci
 
-      - name: Build and normalize Windows installers
-        run: npm run build:windows
+      - name: Diagnose files before Tauri build
+        shell: pwsh
+        run: |
+          Write-Host "Starting Tauri Windows build from $PWD"
+          Write-Host "Existing bundle files:"
+          if (Test-Path "src-tauri/target/release/bundle") {
+            Get-ChildItem "src-tauri/target/release/bundle" -Recurse -Force |
+              Select-Object FullName, Length
+          } else {
+            Write-Host "src-tauri/target/release/bundle does not exist yet (expected before build)."
+          }
+
+      - name: Run Tauri Windows build
+        run: npm run tauri:build -- --bundles nsis,msi
+
+      - name: Diagnose files after Tauri build
+        shell: pwsh
+        run: |
+          Write-Host "Tauri build completed. Generated bundle files:"
+          if (Test-Path "src-tauri/target/release/bundle") {
+            Get-ChildItem "src-tauri/target/release/bundle" -Recurse -Force |
+              Select-Object FullName, Length
+          } else {
+            Write-Error "Tauri completed without creating src-tauri/target/release/bundle."
+          }
+
+      - name: Normalize Windows installers
+        run: npm run normalize:windows
 
       - name: Upload Windows installers
         uses: actions/upload-artifact@v4
