@@ -32,10 +32,9 @@ npm install
 npm run dev
 ```
 
-The supported installer build is performed on GitHub's `windows-latest` runner. `npm run build:windows` deliberately refuses to run on non-Windows hosts. It runs Tauri, finds the NSIS and MSI outputs, and copies them to normalized artifact names:
+The supported installer build is performed on GitHub's `windows-latest` runner. `npm run build:windows` deliberately refuses to run on non-Windows hosts. For v1.0.0, it builds the NSIS bundle and copies it to a normalized artifact name:
 
 - `dist/windows/ClarityLoopSetup.exe`
-- `dist/windows/ClarityLoop.msi` (when MSI generation succeeds)
 
 ## Windows installers
 
@@ -46,6 +45,8 @@ Run the **Build Windows Desktop** workflow manually (`workflow_dispatch`) or pus
 Select the `clarity-loop-windows-installers` artifact. Installer files are generated only on GitHub's Windows runner and are never committed to this repository.
 
 No icon binaries are stored in source control. The current build uses Tauri's generated/default packaging behavior. Branded Windows icon generation can be added later as a CI-only step, without committing image or icon files.
+
+MSI packaging is a future enhancement and is not required for v1.0.0. It will be enabled after Windows icon handling is finalized.
 
 ## Roadmap hooks (not enabled)
 
