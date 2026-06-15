@@ -44,47 +44,36 @@ async function listDirectory(directory, indent = "") {
   }
 }
 
-async function reportMissingInstaller(extension, required) {
-  console.error(`No ${extension} installer was found under ${targetDir}.`);
+async function reportMissingInstaller() {
+  console.error(`No NSIS .exe installer was found under ${targetDir}.`);
   console.error(
-    "Confirm that `npm run tauri:build -- --bundles nsis,msi` completed successfully before normalization."
+    "Confirm that `npm run tauri:build -- --bundles nsis` completed successfully before normalization."
   );
   console.error("Bundle directory listing:");
   await listDirectory(targetDir);
   console.error("Release directory listing:");
   await listDirectory(path.dirname(targetDir));
-
-  if (required) {
-    throw new Error(`Required ${extension} Windows installer was not generated.`);
-  }
-  console.warn(`Continuing without the optional ${extension} installer.`);
+  throw new Error("Required NSIS Windows installer was not generated.");
 }
 
 await rm(outputDir, { recursive: true, force: true });
 await mkdir(outputDir, { recursive: true });
 
-const installers = [
-  { extension: ".exe", name: "ClarityLoopSetup.exe", required: true },
-  { extension: ".msi", name: "ClarityLoop.msi", required: false }
-];
-
-for (const installer of installers) {
-  let matches = [];
-  try {
-    matches = await findFiles(targetDir, installer.extension);
-  } catch (error) {
-    console.error(`Unable to search the Tauri bundle directory: ${error.message}`);
-  }
-
-  if (matches.length === 0) {
-    await reportMissingInstaller(installer.extension, installer.required);
-    continue;
-  }
-  if (matches.length > 1) {
-    console.error(`Found multiple ${installer.extension} installers:`);
-    for (const match of matches) console.error(`  ${match}`);
-    throw new Error(`Expected one ${installer.extension} installer, found ${matches.length}.`);
-  }
-  await cp(matches[0], path.join(outputDir, installer.name));
-  console.log(`Prepared ${installer.name}`);
+let matches = [];
+try {
+  matches = await findFiles(targetDir, ".exe");
+} catch (error) {
+  console.error(`Unable to search the Tauri bundle directory: ${error.message}`);
 }
+
+if (matches.length === 0) {
+  await reportMissingInstaller();
+}
+if (matches.length > 1) {
+  console.error("Found multiple NSIS .exe installers:");
+  for (const match of matches) console.error(`  ${match}`);
+  throw new Error(`Expected one NSIS .exe installer, found ${matches.length}.`);
+}
+
+await cp(matches[0], path.join(outputDir, "ClarityLoopSetup.exe"));
+console.log("Prepared ClarityLoopSetup.exe");
